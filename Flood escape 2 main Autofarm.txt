@@ -1,0 +1,136 @@
+-- // Services
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- // Vars
+local Multiplayer = Workspace.Multiplayer
+local Remote = ReplicatedStorage.Remote
+local LocalPlayer = Players.LocalPlayer
+
+local GoToButton = true
+local Speed = 20 -- studs per second
+
+-- // Teleport
+local function teleportTo(teleportCFrame: CFrame, callback: Function)
+    -- // Vars
+    local HumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+    repeat wait()
+        HumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+    until LocalPlayer.Character.HumanoidRootPart
+
+    -- // Working out how fast to tp there
+    local Distance = (HumanoidRootPart.Position - teleportCFrame.Position).Magnitude
+    local Time = Distance / Speed
+
+    -- // Tweening
+    local tweenInfo = TweenInfo.new(Time, Enum.EasingStyle.Linear)
+    local propertyTable = {CFrame = teleportCFrame}
+    local Tween = TweenService:Create(HumanoidRootPart, tweenInfo, propertyTable)
+
+    -- // Play Tween
+    Tween:Play()
+
+    -- // Do callback
+    if (not callback) then callback = function() end end
+    Tween.Completed:Connect(callback)
+end
+
+-- // Get all buttons
+local function getAllButtons()
+    local MapDescendants = Multiplayer.Map:GetDescendants()
+    local AllButtons = {}
+
+    -- // Loop through map descendants
+    for i = 1, #MapDescendants do
+        local descendant = MapDescendants[i]
+
+        -- // If descendant is a billboard gui - the thing that shows you the button outline and the xp you get from it
+        if (descendant:IsA("BillboardGui") and descendant:FindFirstChild("Border") and descendant:FindFirstChild("XP")) then
+            local TargetButton = descendant.Parent
+            local ButtonPart = TargetButton:FindFirstChildWhichIsA("Part")
+
+            -- // Add it to the table
+            AllButtons[#AllButtons + 1] = {TargetButton, ButtonPart, descendant}
+        end
+    end
+
+    -- // Return
+    return AllButtons
+end
+
+-- // Get Target Button
+local function getTargetButton()
+    -- // Loop through map descendants
+    local MapDescendants = Multiplayer.Map:GetDescendants()
+    for i = 1, #MapDescendants do
+        local descendant = MapDescendants[i]
+
+        -- // If descendant is a billboard gui - the thing that shows you the button outline and the xp you get from it. If it's xp isnt set then it is the target one so skip it
+        if (descendant:IsA("BillboardGui") and descendant:FindFirstChild("Border") and descendant.Border.ImageColor3 ~= Color3.fromRGB(255, 255, 0) and descendant.XP.Text ~= "") then
+            local TargetButton = descendant.Parent
+            local ButtonPart = TargetButton:FindFirstChildWhichIsA("Part")
+
+            -- // Return the button
+            return {TargetButton, ButtonPart}
+        end
+    end
+end
+
+-- // Check if in game
+local function isInGame()
+    local Ingame = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame
+    return Ingame.Visible
+end
+
+-- // Teleport to exit
+local function goExit()
+    wait(1)
+
+    -- // Check if all of the buttons have been pressed
+    local targetButtons = getAllButtons()
+    if (#targetButtons == 0 or (#targetButtons == 1 and targetButtons[3] and targetButtons[3].ImageColor == Color3.fromRGB(0, 183, 255))) then
+        teleportTo(Multiplayer.Map.ExitRegion.CFrame)
+    end
+end
+
+-- // Teleport to every button
+Remote.UpdButtonTarget.OnClientEvent:Connect(function(Button, Billboard)
+    if (Billboard and Billboard.Enabled and Billboard.Parent ~= nil and Button and GoToButton) then
+        teleportTo(Button.CFrame, goExit)
+    end
+end)
+
+-- // Teleport to lift
+local function goToLift()
+    -- // Press Play
+    local EntryScript = LocalPlayer.PlayerScripts:FindFirstChild("CL_EntryScript")
+    if (EntryScript) then
+        getsenv(EntryScript).playGame(true)
+    end
+
+    -- // Do not teleport if mid game
+    if (not isInGame()) then
+        teleportTo(Workspace.Lobby.WaitingRegion.CFrame)
+    end
+end
+goToLift()
+
+-- // See when map is loaded and teleport to first button
+local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
+Time:GetPropertyChangedSignal("Text"):Connect(function(value)
+    if (Time.Text == "0:00.0") then
+        wait(1)
+        teleportTo(getTargetButton()[2].CFrame)
+    end
+end)
+
+-- // On Character Added
+local function onCharacterAdded(Character)
+    goToLift()
+end
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+-- // Notify
+print("Autofarm loaded!")
