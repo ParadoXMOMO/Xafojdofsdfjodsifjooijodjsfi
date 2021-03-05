@@ -15,10 +15,10 @@ local Speed = 20 -- studs per second
 -- // Teleport
 local function teleportTo(teleportCFrame: CFrame, callback: Function)
     -- // Vars
-    local HumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+    local HumanoidRootPart
     repeat wait()
-        HumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
-    until LocalPlayer.Character.HumanoidRootPart
+        HumanoidRootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    until HumanoidRootPart ~= nil
 
     -- // Working out how fast to tp there
     local Distance = (HumanoidRootPart.Position - teleportCFrame.Position).Magnitude
