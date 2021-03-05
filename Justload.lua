@@ -1,3 +1,7 @@
+-- // Wait until loaded in
+repeat wait() until game:IsLoaded()
+repeat wait() until workspace:FindFirstChild("Multiplayer")
+
 -- // Services
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
