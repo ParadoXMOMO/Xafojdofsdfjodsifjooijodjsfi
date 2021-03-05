@@ -6,11 +6,13 @@ local TeleportService = game:GetService("TeleportService")
 -- // Vars
 local LocalPlayer = Players.LocalPlayer
 
-local AutofarmScriptURL = ""
-local AutoloadScripttURL = ""
+local RepositoryURL = "https://raw.githubusercontent.com/ParadoXMOMO/Xafojdofsdfjodsifjooijodjsfi/"
+local Branch = "main/"
+local AutofarmScript = "Autofarm.txt"
+local AutoloadScript = "Justload.lua"
 
 -- // Launch the script
-loadstring(game:HttpGet(AutofarmScriptURL))()
+loadstring(game:HttpGet(RepositoryURL .. Branch .. AutofarmScript))()
 
 -- // Rejoin on kick
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
@@ -23,6 +25,7 @@ end)
 -- // When teleported, execute this script again
 LocalPlayer.OnTeleport:Connect(function(State)
     if (State == Enum.TeleportState.Started) then
-        syn.queue_on_teleport(game:HttpGet(AutoloadScripttURL))
+        local Script = game:HttpGet(RepositoryURL .. Branch .. AutoloadScript)
+        syn.queue_on_teleport(Script)
     end
 end)
