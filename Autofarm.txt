@@ -78,6 +78,29 @@ local function getTargetButton()
     end
 end
 
+-- // Convert text timecode to number of seconds
+local function timeCodeConvert(timeCode)
+    -- // Split message
+    local splitTC = timeCode:split(":")
+    local splitTC2 = timeCode:split(".")
+
+    -- // Failsafing
+    splitTC[1] = splitTC[1] or "0"
+
+    splitTC[2] = splitTC[2] or "0"
+    splitTC[2] = splitTC[2]:sub(0, splitTC[2]:find(".") + 1)
+
+    splitTC2[2] = splitTC2[2] or "0"
+
+    -- // Get m, s, ms
+    local minutes = tonumber(splitTC[1])
+    local seconds = tonumber(splitTC[2])
+    local mseconds = tonumber(splitTC2[2])
+
+    -- // Calculate time
+    return (minutes * 60) + seconds + (mseconds / math.pow(10, #splitTC2[2]) )
+end
+
 -- // Check if in game
 local function isInGame()
     local Ingame = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame
@@ -90,7 +113,11 @@ local function goExit()
 
     -- // Check if all of the buttons have been pressed
     local targetButtons = getAllButtons()
+    local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
+
     if (#targetButtons == 0 or (#targetButtons == 1 and targetButtons[3] and targetButtons[3].ImageColor == Color3.fromRGB(0, 183, 255))) then
+        repeat wait() until timeCodeConvert(Time.Text) > 60
+
         teleportTo(Multiplayer.Map.ExitRegion.CFrame)
     end
 end
@@ -120,14 +147,25 @@ goToLift()
 -- // See when map is loaded and teleport to first button
 local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
 Time:GetPropertyChangedSignal("Text"):Connect(function(value)
-    if (Time.Text == "0:00.0") then
+    if (timeCodeConvert(Time.Text) >= 0) then
         wait(1)
         teleportTo(getTargetButton()[2].CFrame)
     end
 end)
 
+-- // Disable Tripping
+local Humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
+
+Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+
 -- // On Character Added
 local function onCharacterAdded(Character)
+    Humanoid = Character:WaitForChild("Humanoid")
+
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+
     goToLift()
 end
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
