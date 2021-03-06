@@ -14,6 +14,12 @@ local Speed = 20 -- studs per second
 
 -- // Teleport
 local function teleportTo(teleportCFrame: CFrame, callback: Function)
+    -- // Disable Tripping
+    local Humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
+
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+
     -- // Vars
     local HumanoidRootPart
     repeat wait()
@@ -152,12 +158,6 @@ Time:GetPropertyChangedSignal("Text"):Connect(function(value)
         teleportTo(getTargetButton()[2].CFrame)
     end
 end)
-
--- // Disable Tripping
-local Humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
-
-Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
 
 -- // On Character Added
 local function onCharacterAdded(Character)
