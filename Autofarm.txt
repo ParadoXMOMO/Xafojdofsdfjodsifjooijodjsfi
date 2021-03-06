@@ -14,12 +14,6 @@ local Speed = 20 -- studs per second
 
 -- // Teleport
 local function teleportTo(teleportCFrame: CFrame, callback: Function)
-    -- // Disable Tripping
-    local Humanoid = LocalPlayer.Character:WaitForChild("Humanoid")
-
-    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-
     -- // Vars
     local HumanoidRootPart
     repeat wait()
@@ -120,10 +114,8 @@ local function goExit()
     -- // Check if all of the buttons have been pressed
     local targetButtons = getAllButtons()
     local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
-
     if (#targetButtons == 0 or (#targetButtons == 1 and targetButtons[3] and targetButtons[3].ImageColor == Color3.fromRGB(0, 183, 255))) then
         repeat wait() until timeCodeConvert(Time.Text) > 60
-
         teleportTo(Multiplayer.Map.ExitRegion.CFrame)
     end
 end
@@ -153,7 +145,7 @@ goToLift()
 -- // See when map is loaded and teleport to first button
 local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
 Time:GetPropertyChangedSignal("Text"):Connect(function(value)
-    if (timeCodeConvert(Time.Text) >= 0) then
+    if (timeCodeConvert(Time.Text) < 0.5) then
         wait(1)
         teleportTo(getTargetButton()[2].CFrame)
     end
@@ -161,11 +153,6 @@ end)
 
 -- // On Character Added
 local function onCharacterAdded(Character)
-    Humanoid = Character:WaitForChild("Humanoid")
-
-    Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-
     goToLift()
 end
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
