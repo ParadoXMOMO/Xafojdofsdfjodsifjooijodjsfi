@@ -115,7 +115,7 @@ local function goExit()
     local targetButtons = getAllButtons()
     local Time = LocalPlayer.PlayerGui:WaitForChild("GameGui").HUD.GameStats.Ingame.Time
     if (#targetButtons == 0 or (#targetButtons == 1 and targetButtons[3] and targetButtons[3].ImageColor == Color3.fromRGB(0, 183, 255))) then
-        repeat wait() until timeCodeConvert(Time.Text) > 60
+        repeat wait() until timeCodeConvert(Time.Text) > 40
         teleportTo(Multiplayer.Map.ExitRegion.CFrame)
     end
 end
